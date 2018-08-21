@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+# TODO:
+# get just one word or verify agains more than one the search.
 
 from twitterscraper import query_tweets
 import gzip
@@ -70,7 +71,7 @@ stopwords_sv.append(u'.')
 stopwords_sv.append(u'&')
 
 # Define the words/word to search
-words_to_search = "SD"
+words_to_search = ""
 documents, words = test_bib(words_to_search,stopwords_sv)
 
 

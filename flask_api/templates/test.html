@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitter Demo</title>
+</head>
+<body>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message[1] }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form action="" method="post">
+            {{ form.csrf }}
+ 
+            <div name="train" class="input text">
+                {{ form.train_label }} {{ form.train }}
+            </div>
+ 
+            <div class="input submit">
+                <input name="submit" type="submit" value="Train" />
+            </div>
+		</form>
+		<form action="" method="POST">
+		  {{ search.csrf }}
+			<div name="search" class="input text">
+                {{ search.search_label }} {{ search.search }}
+            </div>
+ 
+            <div class="input submit">
+                <input name="submit" type="submit" value="Search" />
+            </div>
+			<div class="text">
+			  {{ "Five closest words:" }}
+			</div>
+			{% for word in w2v.words %}
+			<div class="text">
+			  {{ word }}
+			</div>
+			{% endfor %}
+        </form>
+    </body>
+</html>

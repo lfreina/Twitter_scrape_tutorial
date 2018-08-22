@@ -71,7 +71,7 @@ stopwords_sv.append(u'.')
 stopwords_sv.append(u'&')
 
 # Define the words/word to search
-words_to_search = ""
+words_to_search = "Advectas"
 documents, words = test_bib(words_to_search,stopwords_sv)
 
 

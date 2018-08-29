@@ -1,10 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
+	   <style type="text/css">
+        .header{
+            text-align: center;
+            background-color: rgb(136, 185, 229);
+            height: 70px;
+            line-height: 70px;
+        }
+        .chart{
+            margin-top: 30px;
+            text-align: center;
+        }
+    </style>
     <meta charset="UTF-8">
     <title>Twitter Demo</title>
-</head>
-<body>
+  </head>
+  <body>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul>
@@ -43,5 +55,26 @@
 			</div>
 			{% endfor %}
         </form>
-    </body>
+		   <div class="header">
+			 <h2>
+               Plotly Chart Tweets
+			 </h2>
+		   </div>
+		   
+		   <div id="chart" class="chart">
+		   </div>
+  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+  <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://d14fo0winaifog.cloudfront.net/plotly-basic.js"></script>
+  <script type="text/javascript">
+	
+	var graphs = {{graphJSON | safe}};
+	
+	Plotly.plot('chart',graphs,{});
+	
+  </script>
+  
+  
+  
 </html>

@@ -11,6 +11,38 @@ import os
 import codecs
 import numpy as np
 from nltk import FreqDist
+import datetime
+
+def word2vect(words, model,vector_size=2):
+    vectors = []
+    for word in words:
+        try:
+            vectors.append(model.wv.get_vector(word)[:vector_size])
+        except:
+            pass
+    return vectors
+
+def harvest(keyword_to_harvest, stopwords):
+    words = []
+    # Decode the text to support swedish characters
+    keyword_to_harvest = keyword_to_harvest.decode('utf-8')
+    # Query twitter with the "keyword"
+    for query in query_tweets(keyword_to_harvest,
+                              lang='sv',
+                              poolsize=20,
+                              begindate=datetime.date(2014,1,1,)):
+        # Split the result to get the words
+        new_list = query.text.split(u' ')
+        for word in new_list:
+            try:
+                # Remove the stopwords --> Not interesting!
+                if word.encode('utf-8').lower() in stopwords:
+                    new_list.remove(word)
+                else:
+                    words.append(word)
+            except:
+                print word, " is not unicode"
+    return words
 
 
 def train(orden, stopwords):

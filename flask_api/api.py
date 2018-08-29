@@ -5,10 +5,20 @@ from flask import render_template, flash, request
 from wtforms import Form, TextField, TextAreaField, validators, StringField,  SubmitField
 import gensim
 
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
+import json
+import numpy as np
+
 app = Flask(__name__)
 app.debug = True
 app.config.from_object(__name__)
 app.config['SECRET_KEY'] = '7d441f27d441f27567d441f2b6176a'
+
+model = gensim.models.word2vec.Word2Vec.load('sv_blogposts_10M_minc10_win10_size300')
+data = []
+
 
 class ReusableForm(Form):
     train_label = 'No text here'
@@ -22,13 +32,18 @@ class Five_w2v_words(Form):
     label = 'No word here.\n'
     for i in range(0,5,1):
         words.append(label)
-    # def assign(self,v_words):
-    #     for i in range(0,len(result),1):
-    #         result[i] = v_words[i]
 
- 
+@app.route('/showMultiChart')
+def multiLine():
+    global data
+    print 'Length', len(data)
+    graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+    return render_template('test1.html',
+                           graphJSON=graphJSON)
+
 @app.route("/", methods=['POST','GET'])
 def hello():
+    global data, graphEnable
     # Init
     form = ReusableForm(request.form)
     form.train_label = 'Word to train with: '
@@ -36,34 +51,62 @@ def hello():
     search = SearchForm(request.form)
     search.search_label = 'Word to search: '
     w2v = Five_w2v_words(request.form)
-    
+
+    graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+
     print "Request method:",request.method
 
     if request.method == 'POST':
+        # if request.form['submit'] =='Plot':
+        #     graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
         if request.form['submit'] == 'Train':
             train_word=request.form['train']
             print "train with", train_word,
         
             if form.validate():
                 # Save the comment here.
+                tweeter_words = train_word.split(',')
 
-                documents, words = sf.train(train_word.lower(),sf.stopwords_sv)
-                # build vocabulary and train model
-                model = gensim.models.Word2Vec(
-                    documents,
-                    size=150,
-                    window=20,
-                    min_count=2,
-                    workers=4,
-                    sg=0)
+                class_search = []
+                for word in tweeter_words:
+                    words = sf.harvest(word,sf.stopwords_sv)
+                    vectors = sf.word2vect(words,model)
+                    class_search.append([word,words,vectors])
+                print "Total fetched words : ", len(class_search)
+                data = []
+                for index in range(0,len(class_search),1):
+                    local_vectors = np.array(class_search[index][2])
+                    print 'local_vectors for ', class_search[index][0],
+                    print ' is ', len(local_vectors[:,0]), ' shape is: ',
+                    print local_vectors.shape
+                    data.append(
+                        go.Scatter(
+                            x=local_vectors[:,0], # The vectors inside
+                            y=local_vectors[:,1], # The second dim of the vector
+                            mode='markers',
+                            text=class_search[index][0]
+                        )
+                    )
+                print "Total scatter plots : ", len(data)
 
-                model.train(documents, total_examples=len(documents), epochs=10)
-                model.save('train.model')
+                graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
 
-                flash('Trained a model with the word: ' + train_word.lower())
+                # # build vocabulary and train model
+                # model = gensim.models.Word2Vec(
+                #     documents,
+                #     size=150,
+                #     window=20,
+                #     min_count=2,
+                #     workers=4,
+                #     sg=0)
+
+                # model.train(documents, total_examples=len(documents), epochs=10)
+                # model.save('train.model')
+
+                # flash('Trained a model with the word: ' + train_word.lower())
+
             else:
                 flash('All the form fields are required. ')
-            
 
         if request.form['submit'] == 'Search':
             
@@ -71,8 +114,6 @@ def hello():
             print "Search with", search_word,
         
             if search.validate():
-                # Save the comment here.
-                model = gensim.models.word2vec.Word2Vec.load('train.model')
                 #flash('Word2Vec with the word: ' + sf.get_similar(search_word, model))
                 result = sf.get_similar(search_word, model)
                 for i in range(0,len(result),1):
@@ -83,7 +124,7 @@ def hello():
                 flash('All the form fields are required. ')
 
 
-    return render_template('test.html', form=form, search=search, w2v=w2v)
+    return render_template('test.html', form=form, search=search, w2v=w2v, graphJSON=graphJSON)
 
 
 # Run the app add port=# if you want to run on a different port than 5000

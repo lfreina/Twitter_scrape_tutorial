@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# TODO:
-# get just one word or verify agains more than one the search.
 
 from twitterscraper import query_tweets
 import gzip
@@ -20,16 +18,17 @@ def sent2vect(sentences, model):
     # Loop through the sentences
     for entry in sentences:
         # Previous knowledge that the vectors have 300 dim
-        weights = np.zeros(300)
-        for word in entry:
-            try:
-                # If the word is not present in the corpus
-                # an exception will occur!
-                weights+=np.array(model.wv.get_vector(word))
-            except:
-                continue
+        weights = np.array(word2vect(entry,model,vector_size=300))
         # Save the weights
-        vectors.append(weights)
+        avr = np.average(weights)
+        # Look for NaN entries and just skip them
+        if np.isnan(avr):
+            # Just a bunch of zeros probably not that good in the long run
+            avr = np.zeros(300)
+        else:
+            # The average ( our bad aprox of sentence to vector )
+            avr = np.average(weights,axis=0)
+        vectors.append(avr)
     return vectors
 
 
@@ -97,7 +96,7 @@ def train(orden, stopwords):
                 for word in new_list:
                         try:
                                 if word.encode('utf-8').lower() in stopwords:
-                                        new_list.remove(word)#.encode('utf-8'))
+                                        new_list.remove(word)
                                 else:
                                         words.append(word.lower())
                         except:

@@ -11,6 +11,8 @@ import plotly.graph_objs as go
 import json
 import numpy as np
 
+from sklearn.decomposition import PCA
+
 app = Flask(__name__)
 app.debug = True
 app.config.from_object(__name__)
@@ -63,18 +65,33 @@ def hello():
             print "train with", train_word,
         
             if form.validate():
-                # Save the comment here.
+                # Split between all the words we have to perform
+                # twitter scrapying with.
                 tweeter_words = train_word.split(',')
 
+                # Just a vector that contains all the info
                 class_search = []
+                X = []
+                data = []
                 for word in tweeter_words:
+                    # Harvest the tweets
                     sentences = sf.harvest_sentences(word)
+                    # Get a sent2vect transformation
                     vectors = sf.sent2vect(sentences,model)
+                    # Save the results
                     class_search.append([word,sentences,vectors])
+                    X.extend(vectors)
+                # Debug output, should remove
                 print "Total fetched words : ", len(class_search)
+
+                # Perform PCA
+                pca = PCA(n_components=3)
+                pca.fit(X)
+                
+                # For plotting the results
                 data = []
                 for index in range(0,len(class_search),1):
-                    local_vectors = np.array(class_search[index][2])
+                    local_vectors = np.array(pca.transform(class_search[index][2]))
                     print 'local_vectors for ', class_search[index][0],
                     print ' is ', len(local_vectors[:,0]), ' shape is: ',
                     print local_vectors.shape
@@ -82,10 +99,16 @@ def hello():
                         go.Scatter(
                             x=local_vectors[:,0], # The vectors inside
                             y=local_vectors[:,1], # The second dim of the vector
+                            # z=local_vectors[:,2], # The second dim of the vector
                             mode='markers',
                             text=class_search[index][0].encode('utf-8'),
                             name=class_search[index][0].encode('utf-8')
                         )
+                        # go.Histogram(
+                        #     x=local_vectors[:,0], # The vectors inside
+                        #     text=class_search[index][0].encode('utf-8'),
+                        #     name=class_search[index][0].encode('utf-8')
+                        # )
                     )
                 print "Total scatter plots : ", len(data)
 

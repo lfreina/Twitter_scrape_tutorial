@@ -57,8 +57,7 @@ def hello():
     print "Request method:",request.method
 
     if request.method == 'POST':
-        # if request.form['submit'] =='Plot':
-        #     graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+        # One of the buttons
         if request.form['submit'] == 'Train':
             train_word=request.form['train']
             print "train with", train_word,
@@ -69,9 +68,9 @@ def hello():
 
                 class_search = []
                 for word in tweeter_words:
-                    words = sf.harvest(word,sf.stopwords_sv)
-                    vectors = sf.word2vect(words,model)
-                    class_search.append([word,words,vectors])
+                    sentences = sf.harvest(word)
+                    vectors = sf.sent2vect(sentences,model)
+                    class_search.append([word,sentences,vectors])
                 print "Total fetched words : ", len(class_search)
                 data = []
                 for index in range(0,len(class_search),1):
@@ -84,7 +83,8 @@ def hello():
                             x=local_vectors[:,0], # The vectors inside
                             y=local_vectors[:,1], # The second dim of the vector
                             mode='markers',
-                            text=class_search[index][0]
+                            text=class_search[index][0],
+                            name=class_search[index][0]
                         )
                     )
                 print "Total scatter plots : ", len(data)
@@ -107,7 +107,7 @@ def hello():
 
             else:
                 flash('All the form fields are required. ')
-
+        # The other button
         if request.form['submit'] == 'Search':
             
             search_word=request.form['search']

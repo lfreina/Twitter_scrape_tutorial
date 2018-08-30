@@ -39,19 +39,20 @@ def word2vect(words, model,vector_size=2):
         try:
             vectors.append(model.wv.get_vector(word)[:vector_size])
         except:
-            pass
+            continue
     return vectors
 
 # Harvest sentences, not removing the stopwords
-def harvest_sentences(keyword_to_harvest):
+def harvest_sentences(keyword_to_harvest,limit=2000):
     sentences = []
     # Decode the text to support swedish characters
-    keyword_to_harvest = keyword_to_harvest.decode('utf-8')
+    keyword_to_harvest = keyword_to_harvest.encode('utf-8')
 
     # Query twitter with the "keyword"        
     for query in query_tweets(keyword_to_harvest,
                               lang='sv',
                               poolsize=20,
+                              limit=limit,
                               begindate=datetime.date(2014,1,1,)):
         # Split the result to get the words
         new_list = query.text.split(u' ')
@@ -62,13 +63,14 @@ def harvest_sentences(keyword_to_harvest):
     return sentences
 
 # Harvest while removing the stopwords
-def harvest_words(keyword_to_harvest, stopwords):
+def harvest_words(keyword_to_harvest, stopwords,limit=2000):
     words = []
     # Decode the text to support swedish characters
-    keyword_to_harvest = keyword_to_harvest.decode('utf-8')
+    keyword_to_harvest = keyword_to_harvest.encode('utf-8')
     # Query twitter with the "keyword"
     for query in query_tweets(keyword_to_harvest,
                               lang='sv',
+                              limit=limit,
                               poolsize=20,
                               begindate=datetime.date(2014,1,1,)):
         # Split the result to get the words

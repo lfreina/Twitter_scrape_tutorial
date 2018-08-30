@@ -68,7 +68,7 @@ def hello():
 
                 class_search = []
                 for word in tweeter_words:
-                    sentences = sf.harvest(word)
+                    sentences = sf.harvest_sentences(word)
                     vectors = sf.sent2vect(sentences,model)
                     class_search.append([word,sentences,vectors])
                 print "Total fetched words : ", len(class_search)
@@ -83,25 +83,13 @@ def hello():
                             x=local_vectors[:,0], # The vectors inside
                             y=local_vectors[:,1], # The second dim of the vector
                             mode='markers',
-                            text=class_search[index][0],
-                            name=class_search[index][0]
+                            text=class_search[index][0].encode('utf-8'),
+                            name=class_search[index][0].encode('utf-8')
                         )
                     )
                 print "Total scatter plots : ", len(data)
 
                 graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
-
-                # # build vocabulary and train model
-                # model = gensim.models.Word2Vec(
-                #     documents,
-                #     size=150,
-                #     window=20,
-                #     min_count=2,
-                #     workers=4,
-                #     sg=0)
-
-                # model.train(documents, total_examples=len(documents), epochs=10)
-                # model.save('train.model')
 
                 # flash('Trained a model with the word: ' + train_word.lower())
 

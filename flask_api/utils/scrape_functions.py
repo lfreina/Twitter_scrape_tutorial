@@ -13,6 +13,26 @@ import numpy as np
 from nltk import FreqDist
 import datetime
 
+
+def sent2vect(sentences, model):
+    # Init
+    vectors = []
+    # Loop through the sentences
+    for entry in sentences:
+        # Previous knowledge that the vectors have 300 dim
+        weights = np.zeros(300)
+        for word in entry:
+            try:
+                # If the word is not present in the corpus
+                # an exception will occur!
+                weights+=np.array(model.wv.get_vector(word))
+            except:
+                continue
+        # Save the weights
+        vectors.append(weights)
+    return vectors
+
+
 def word2vect(words, model,vector_size=2):
     vectors = []
     for word in words:
@@ -22,7 +42,27 @@ def word2vect(words, model,vector_size=2):
             pass
     return vectors
 
-def harvest(keyword_to_harvest, stopwords):
+# Harvest sentences, not removing the stopwords
+def harvest_sentences(keyword_to_harvest):
+    sentences = []
+    # Decode the text to support swedish characters
+    keyword_to_harvest = keyword_to_harvest.decode('utf-8')
+
+    # Query twitter with the "keyword"        
+    for query in query_tweets(keyword_to_harvest,
+                              lang='sv',
+                              poolsize=20,
+                              begindate=datetime.date(2014,1,1,)):
+        # Split the result to get the words
+        new_list = query.text.split(u' ')
+        current_sentence= []
+        for word in new_list:
+            current_sentence.append(word)
+        sentences.append(current_sentence)
+    return sentences
+
+# Harvest while removing the stopwords
+def harvest_words(keyword_to_harvest, stopwords):
     words = []
     # Decode the text to support swedish characters
     keyword_to_harvest = keyword_to_harvest.decode('utf-8')

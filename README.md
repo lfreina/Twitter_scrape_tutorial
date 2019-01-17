@@ -35,5 +35,5 @@ The easiest way to install the module and the required packages is to use pip.
 The following will install the required python packages.
 Don't forget to activate your virtual environment first!
 
->pip install twitterscraper gensim nltk
+>pip install twitterscraper gensim nltk wtforms flask plotly sklearn
 

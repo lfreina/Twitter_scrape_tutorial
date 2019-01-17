@@ -38,7 +38,7 @@ class Five_w2v_words(Form):
 @app.route('/showMultiChart')
 def multiLine():
     global data
-    print 'Length', len(data)
+    print ('Length', len(data) )
     graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
     return render_template('test1.html',
                            graphJSON=graphJSON)
@@ -49,20 +49,20 @@ def hello():
     # Init
     form = ReusableForm(request.form)
     form.train_label = 'Word to train with: '
-    print form.errors
+    print (form.errors)
     search = SearchForm(request.form)
     search.search_label = 'Word to search: '
     w2v = Five_w2v_words(request.form)
 
     graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
 
-    print "Request method:",request.method
+    print ("Request method:",request.method)
 
     if request.method == 'POST':
         # One of the buttons
         if request.form['submit'] == 'Train':
             train_word=request.form['train']
-            print "train with", train_word,
+            print ("train with", train_word,)
         
             if form.validate():
                 # Split between all the words we have to perform
@@ -76,43 +76,49 @@ def hello():
                 for word in tweeter_words:
                     # Harvest the tweets
                     sentences = sf.harvest_sentences(word)
-                    # Get a sent2vect transformation
-                    vectors = sf.sent2vect(sentences,model)
-                    # Save the results
-                    class_search.append([word,sentences,vectors])
-                    X.extend(vectors)
-                # Debug output, should remove
-                print "Total fetched words : ", len(class_search)
+                    if (len(sentences)==0):
+                        flash('No tweets fetched :S ')
+                    else:
+                        # Get a sent2vect transformation
+                        vectors = sf.sent2vect(sentences,model)
+                        # Save the results
+                        class_search.append([word,sentences,vectors])
+                        X.extend(vectors)
+                        # Debug output, should remove
+                        print ("Total fetched words : ", len(class_search))
+                if (len(sentences)==0):
+                    flash('Try again please :) ')
+                else:
 
-                # Perform PCA
-                pca = PCA(n_components=3)
-                pca.fit(X)
+                    # Perform PCA
+                    pca = PCA(n_components=3)
+                    pca.fit(X)
                 
-                # For plotting the results
-                data = []
-                for index in range(0,len(class_search),1):
-                    local_vectors = np.array(pca.transform(class_search[index][2]))
-                    print 'local_vectors for ', class_search[index][0],
-                    print ' is ', len(local_vectors[:,0]), ' shape is: ',
-                    print local_vectors.shape
-                    data.append(
-                        go.Scatter(
-                            x=local_vectors[:,0], # The vectors inside
-                            y=local_vectors[:,1], # The second dim of the vector
-                            # z=local_vectors[:,2], # The second dim of the vector
-                            mode='markers',
-                            text=class_search[index][0].encode('utf-8'),
-                            name=class_search[index][0].encode('utf-8')
+                    # For plotting the results
+                    data = []
+                    for index in range(0,len(class_search),1):
+                        local_vectors = np.array(pca.transform(class_search[index][2]))
+                        print ('local_vectors for ', class_search[index][0],)
+                        print (' is ', len(local_vectors[:,0]), ' shape is: ',)
+                        print (local_vectors.shape)
+                        data.append(
+                            go.Scatter(
+                                x=local_vectors[:,0], # The vectors inside
+                                y=local_vectors[:,1], # The second dim of the vector
+                                # z=local_vectors[:,2], # The second dim of the vector
+                                mode='markers',
+                                text=class_search[index][0],#.encode('utf-8'),
+                                name=class_search[index][0]#.encode('utf-8')
+                            )
+                            # go.Histogram(
+                            #     x=local_vectors[:,0], # The vectors inside
+                            #     text=class_search[index][0].encode('utf-8'),
+                            #     name=class_search[index][0].encode('utf-8')
+                            # )
                         )
-                        # go.Histogram(
-                        #     x=local_vectors[:,0], # The vectors inside
-                        #     text=class_search[index][0].encode('utf-8'),
-                        #     name=class_search[index][0].encode('utf-8')
-                        # )
-                    )
-                print "Total scatter plots : ", len(data)
+                    print ("Total scatter plots : ", len(data))
 
-                graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
+                    graphJSON = json.dumps(data, cls=plotly.utils.PlotlyJSONEncoder)
 
                 # flash('Trained a model with the word: ' + train_word.lower())
 
@@ -122,15 +128,16 @@ def hello():
         if request.form['submit'] == 'Search':
             
             search_word=request.form['search']
-            print "Search with", search_word,
+            print ("Search with", search_word,)
         
             if search.validate():
                 #flash('Word2Vec with the word: ' + sf.get_similar(search_word, model))
-                result = sf.get_similar(search_word, model)
-                for i in range(0,len(result),1):
-                    w2v.words[i] = result[i]
-
-
+                try:
+                    result = sf.get_similar(search_word, model)
+                    for i in range(0,len(result),1):
+                        w2v.words[i] = result[i]
+                except:
+                    flash('Oops! That word is not in the dictionary. Try a new one :) ')
             else:
                 flash('All the form fields are required. ')
 
